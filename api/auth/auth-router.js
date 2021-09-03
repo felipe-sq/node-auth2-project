@@ -17,15 +17,15 @@ router.post("/register", validateRoleName, (req, res, next) => {
       "role_name": "angel"
     }
    */
-  const user = req.body;
+  let user = req.body;
   
-  const rounds = 10;
+  const rounds = process.env.BCYPT_ROUNDS || 10;
   const hash = bcrypt.hashSync(user.password, rounds);
   user.password = hash;
 
   Users.add(user)
     .then(saved => {
-      res.status(201).json({ message: `Thanks for registering, ${saved.username}!`});
+      res.status(201).json(saved);
     })
     .catch(next);
 });
@@ -52,23 +52,24 @@ router.post("/login", checkUsernameExists, (req, res, next) => {
     }
    */
 
-  const user = req.body;
-  
-  if(user && bcrypt.compareSync(user.password, req.userData.password)) {
-    const token = makeToken(req.user);
+  const verified  = bcrypt.compareSync(req.body.password, req.userData.password);
+    
+  if (verified) {
+    const token = makeToken(req.userData);
     res.status(200).json({
-      message: `Welcome back, ${req.user.username}!`,
+      message: `${req.userData.username} is back`,
       token
     });
-  } else {
     next();
-  }
+  } else {
+    res.status(401).json({ message: "invalid credentials" });
+  } 
 });
 
 
 function makeToken(user) {
   const payload = {
-    subject: user.id,
+    subject: user.user_id,
     username: user.username,
     role_name: user.role_name
   };
