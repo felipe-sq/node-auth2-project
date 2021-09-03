@@ -53,7 +53,7 @@ const only = role_name => (req, res, next) => {
 }
 
 
-const checkUsernameExists = async (req, res, next) => {
+const checkUsernameExists = (req, res, next) => {
   /*
     If the username in req.body does NOT exist in the database
     status 401
@@ -61,17 +61,36 @@ const checkUsernameExists = async (req, res, next) => {
       "message": "Invalid credentials"
     }
   */
-  try {
-    const rows = await User.findBy({ username: req.body.username });
-    if (rows.lenth) {
-      req.userData = rows[0];
-      next();
-    } else {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-  } catch (error) {
-    next(error);
+
+  // return res.json({ message: `username: ${req.body.username}, password ${req.body.password}` });
+  const rows = User.findBy({ username: req.body.username });
+  if (rows.length) {
+    req.userData = rows[0];
+    next();
+  } else {
+    return res.status(401).json({ message: "Invalid credentials" });
   }
+
+  // User.findBy({ username: req.body.username })
+  //   .then(user => {
+  //     if (!user) {
+  //       return res.status(401).json({ message: "Invalid credentials" });
+  //     } else {
+  //       next();
+  //     } 
+  //   })
+
+  // try {
+  //   const rows = await User.findBy({username: req.body.username});
+  //   if (rows.lenth) {
+  //     req.userData = rows[0];
+  //     next();
+  //   } else {
+  //     return res.status(401).json({ message: "Invalid credentials" });
+  //   }
+  // } catch (error) {
+  //   next(error);
+  // }
 }
 
 
